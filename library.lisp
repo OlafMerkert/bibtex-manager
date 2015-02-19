@@ -1,9 +1,16 @@
-(defpackage :bibtex-retrieval/library
+(defpackage :bibtex-manager/library
   (:nicknames :library)
   (:use :cl :ol)
-  (:export))
+  (:export
+   #:ensure-pathname-relative
+   #:list-head-match
+   #:filename->metadata
+   #:regex-separation-filter
+   #:all-files-in-library
+   #:library-root
+   #:library-files))
 
-(in-package :bibtex-retrieval/library)
+(in-package :bibtex-manager/library)
 
 (defpar library-root (first (uiop:directory* "~/Perfezionamento/topics/")))
 
@@ -72,6 +79,8 @@ relative to it."
         (make-pathname :directory (list* :relative (list-head-match rltv-dir path-dir))
                        :defaults pathname))))
 
-(setf library-files
-      (mapcar (lambda (path) (ensure-pathname-relative path library-root))
-              (all-files-in-library)))
+(defun all-files-in-library/relative ()
+  (mapcar (lambda (path) (ensure-pathname-relative path library-root))
+          (all-files-in-library)))
+
+(defpar library-files (all-files-in-library/relative))

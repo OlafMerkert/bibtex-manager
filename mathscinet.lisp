@@ -1,4 +1,4 @@
-(defpackage :bibtex-retrieval/mathscinet
+(defpackage :bibtex-manager/mathscinet
   (:nicknames :mathscinet)
   (:use :cl :ol
         :iterate
@@ -15,7 +15,7 @@
    #:search-bibtex-entries
    #:bibtex-search-uri))
 
-(in-package :bibtex-retrieval/mathscinet)
+(in-package :bibtex-manager/mathscinet)
 
 ;;; retrieve bibtex information by mathscinet ID
 (defun bibtex-for-publication-id (publication-id)
