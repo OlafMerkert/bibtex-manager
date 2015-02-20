@@ -4,19 +4,36 @@
 
 (in-package :bibtex-manager/clim-ui)
 
+(defpar ui-width 800)
+
 (define-application-frame manager-ui ()
-  ()
+  ((current-object :initform nil
+                   :accessor current-object))
   (:panes (main :application
-                :width 800 :height 600
+                :width ui-width :height 600
                 :scroll-bars t
                 :incremental-redisplay t)
+          (current-object-pane :application
+                               :width ui-width :height 10
+                               :display-function #'show-current-object)
           (int :interactor
-               :width 800 :height 120
+               :width ui-width :height 160
                :scroll-bars t))
-  (:layouts (default (vertically () main int))))
+  (:layouts (default (vertically () main current-object-pane int))))
 
 (defun manager-ui ()
   (run-frame-top-level (make-instance 'manager-ui)))
+
+(defun show-current-object (frame pane)
+  (with-slots (current-object) frame
+    (when current-object
+      (present current-object
+               (cond ((pathnamep current-object) 'document)
+                     ((bibtex-runtime::bib-entry-p current-object) 'bib-entry)
+                     (t (presentation-type-of current-object)))
+               :stream pane
+               :single-box t
+               :allow-sensitive-inferiors nil))))
 
 (define-manager-ui-command (com-quit :name "Quit") ()
   (frame-exit *application-frame*))
@@ -37,9 +54,13 @@
   `(with-drawing-options (pane :ink (assoc1 ,colour colour-table))
      ,@body))
 
+(define-manager-ui-command (com-clear :name "Clear") ()
+  (with-pane (window-clear pane)))
+
 ;; a command for testing code
 (define-manager-ui-command (com-go :name "Go" :menu t) ()
-  (with-pane))
+  ;; (with-pane)
+  )
 
 (define-manager-ui-command (com-list-all :name "List All") ()
   (with-pane
