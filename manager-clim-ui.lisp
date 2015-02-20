@@ -84,7 +84,7 @@
     (display-bib-entries pane (apply #'mathscinet:search-bibtex-entries/fallbacks
                                      (library:filename->metadata file)))))
 
-(define-manager-ui-command (com-bib-search :name "Bib Search" :menu t)
+(define-manager-ui-command (com-bib-search :name "Search All" :menu t)
     (;; (title    'string :prompt "Title")
      ;; (author   'string :prompt "Author")
      (anywhere 'string :prompt "All fields"))
@@ -93,6 +93,32 @@
                          (mathscinet:search-bibtex-entries
                           ;; :title title :author author
                           :anywhere anywhere ))))
+
+(define-manager-ui-command (com-bib-search-author :name "Search Author" :menu t)
+    (;; (title    'string :prompt "Title")
+     (author   'string :prompt "Author")
+     ;; (anywhere 'string :prompt "All fields")
+     )
+  (with-pane
+    (display-bib-entries pane
+                         (mathscinet:search-bibtex-entries
+                          ;; :title title
+                          :author author
+                          ;; :anywhere anywhere
+                          ))))
+
+(define-manager-ui-command (com-bib-search-title :name "Search Title" :menu t)
+    ((title    'string :prompt "Title")
+     ;; (author   'string :prompt "Author")
+     ;; (anywhere 'string :prompt "All fields")
+     )
+  (with-pane
+    (display-bib-entries pane
+                         (mathscinet:search-bibtex-entries
+                          :title title
+                          ;; :author author
+                          ;; :anywhere anywhere
+                          ))))
 
 (define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry)))
 
@@ -146,3 +172,7 @@
                   :title (mathscinet:bib-entry-title entry)
                   :type (bibtex-runtime:bib-entry-type entry)
                   :year (mathscinet:bib-entry-year entry)))
+
+;; Local Variables:
+;; clim-application: manager-ui
+;; End:
