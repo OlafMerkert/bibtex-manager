@@ -67,18 +67,36 @@
     (dolist (file library:library-files)
       (present file 'document :stream pane :single-box t
                :allow-sensitive-inferiors nil)
-      (terpri))))
+      (terpri pane))))
 
-(define-manager-ui-command (com-show-bib :name "Show Bib")
+(defun display-bib-entries (pane entries)
+  (if entries
+      (dolist (entry entries)
+        (present (car entry) 'bib-entry :stream pane :single-box t
+                 :allow-sensitive-inferiors nil)
+        (terpri pane))
+      (in-colour :warning (format pane "No Bib entries found!~%"))))
+
+(define-manager-ui-command (com-bib-lookup :name "Bib Lookup")
     ((file 'document))
-  (let1 (entries (apply #'mathscinet:search-bibtex-entries (library:filename->metadata file)))
-    (with-pane
-      (if entries
-          (dolist (entry entries)
-            (present (car entry) 'bib-entry :stream pane :single-box t
-                     :allow-sensitive-inferiors nil)
-            (terpri))
-          (in-colour :warning (format pane "No Bib entries found!~%"))))))
+  (setf (current-object *application-frame*) file)
+  (with-pane
+    (display-bib-entries pane (apply #'mathscinet:search-bibtex-entries/fallbacks
+                                     (library:filename->metadata file)))))
+
+(define-manager-ui-command (com-bib-search :name "Bib Search" :menu t)
+    (;; (title    'string :prompt "Title")
+     ;; (author   'string :prompt "Author")
+     (anywhere 'string :prompt "All fields"))
+  (with-pane
+    (display-bib-entries pane
+                         (mathscinet:search-bibtex-entries
+                          ;; :title title :author author
+                          :anywhere anywhere ))))
+
+(define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry)))
+
+(define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry)))
 
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
@@ -113,7 +131,6 @@
   (princ relative-path pane))
 
 (define-presentation-method accept ((type document) stream (view textual-dialog-view) &key)
-  ;; FIX don't use read
   (pathname (read-line stream)))
 
 ;; (define-presentation-method accept ((type document) pane view &key default default-type))
