@@ -13,7 +13,8 @@
    #:bib-entry-title
    #:bib-entry-year
    #:search-bibtex-entries
-   #:bibtex-search-uri))
+   #:bibtex-search-uri
+   #:search-bibtex-entries/fallbacks))
 
 (in-package :bibtex-manager/mathscinet)
 
@@ -72,23 +73,31 @@
 (defun search-term-code (term)
   (assoc1 (mkstr term) search-term-codes nil :test 'string-equal))
 
+(defpar remove-characters ",;.-_") ; these are replaced by spaces
+
+(defun sanitise-string (string)
+  (map 'string (lambda (char) (if (position char remove-characters :test #'char=)
+                             #\Space char)) string))
+
 (defun searches->req-parameters (args)
   (let ((args-2 (group args 2))
         (count 3))
     (subseq-
      (mapcan (lambda (a-2)
-               (list (keyw :pg (incf count)) (search-term-code (first a-2))
-                     (keyw :s count) (second a-2)
-                     (keyw :co count) "AND"))
+               (when (and (stringp (second a-2))
+                          (not (length=0 (second a-2))))
+                 (list (keyw :pg (incf count)) (search-term-code (first a-2))
+                       (keyw :s count) (sanitise-string (second a-2))
+                       (keyw :co count) "AND")))
              args-2)
      2)))
 
-(defun bibtex-search-uri (&rest args)
+(defun bibtex-search-uri (args)
   "Create the URI for the BibTeX download link."
   (uri+ "http://www.ams.org/mathscinet/search/publications.html"
         :bdlall "Retrieve First 50"
         :reqargs (subseq (apply #'uri ""
-                                :dr "all" ; time-frame
+                                :dr "all"           ; time-frame
                                 :pg8 "ET" :s8 "All" ; publication type
                                 :review_format "html"
                                 (searches->req-parameters args))
@@ -98,8 +107,13 @@
 
 (defun search-bibtex-entries (&rest search-args)
   "Produce the first 50 results from MathSciNet."
-  (let1 (page (uri->html-document (apply #'bibtex-search-uri search-args)))
+  (let1 (page (uri->html-document (bibtex-search-uri search-args)))
     (bibtex-entries-for-page page)))
 
-;; (length (search-bibtex-entries :author "Masser"))
+(defun search-bibtex-entries/fallbacks (&key author title)
+  (or (and author
+           (or (search-bibtex-entries :author author :title title)
+               (search-bibtex-entries :author author)))
+      (search-bibtex-entries :title title)))
 
+;; (length (search-bibtex-entries :author "Masser"))
