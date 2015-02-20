@@ -11,7 +11,7 @@
                 :scroll-bars t
                 :incremental-redisplay t)
           (int :interactor
-               :width 800 :height 80
+               :width 800 :height 120
                :scroll-bars t))
   (:layouts (default (vertically () main int))))
 
@@ -20,6 +20,22 @@
 
 (define-manager-ui-command (com-quit :name "Quit") ()
   (frame-exit *application-frame*))
+
+(defmacro with-pane (&body body)
+  `(let1 (pane (get-frame-pane *application-frame* 'main))
+     ,@body))
+
+(defpar colour-table
+    `((:title  . ,+red+)
+      (:author . ,+blue+)
+      (:folder . ,+black+)
+      (:type   . ,+gray+)
+      (:year   . ,+black+)
+      (:warning . ,+orange+)))
+
+(defmacro in-colour (colour &body body)
+  `(with-drawing-options (pane :ink (assoc1 ,colour colour-table))
+     ,@body))
 
 ;; a command for testing code
 (define-manager-ui-command (com-go :name "Go" :menu t) ()
@@ -32,19 +48,16 @@
                :allow-sensitive-inferiors nil)
       (terpri))))
 
-(defmacro with-pane (&body body)
-  `(let1 (pane (get-frame-pane *application-frame* 'main))
-     ,@body))
-
-(defpar colour-table
-    `((:title . ,+red+)
-      (:author . ,+blue+)
-      (:folder . ,+black+)
-      (:type  . ,+gray+)))
-
-(defmacro in-colour (colour &body body)
-  `(with-drawing-options (pane :ink (assoc1 ,colour colour-table))
-    ,@body))
+(define-manager-ui-command (com-show-bib :name "Show Bib")
+    ((file 'document))
+  (let1 (entries (apply #'mathscinet:search-bibtex-entries (library:filename->metadata file)))
+    (with-pane
+      (if entries
+          (dolist (entry entries)
+            (present (car entry) 'bib-entry :stream pane :single-box t
+                     :allow-sensitive-inferiors nil)
+            (terpri))
+          (in-colour :warning (format pane "No Bib entries found!~%"))))))
 
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
@@ -52,19 +65,46 @@
 (define-presentation-method presentation-typep (object (type document))
   (pathnamep object))
 
+(defun print-document (pane &key author title type year folder)
+  (macrolet ((print-part (name &key prefix infix suffix)
+               `(when ,name
+                  ,(when prefix `(princ ,prefix pane))
+                  (in-colour ,(keyw name)
+                    ,(if infix
+                         `(format pane ,(concatenate 'string "~{~A~^" infix "~}") ,name)
+                         `(princ ,name pane)))
+                  ,(when suffix `(princ ,suffix pane)))))
+    (print-part author :suffix ": ")
+    (print-part title)
+    (print-part type :prefix ".")
+    (print-part year :prefix " ")
+    (print-part folder :prefix " " :infix " ")))
+
+
 (define-presentation-method present (relative-path (type document) pane view &key)
   (let1 (data (library:filename->metadata relative-path))
-    (awhen (getf data :author)
-      (in-colour :author
-        (princ it pane))
-      (princ ": " pane))
-    (awhen (getf data :title)
-      (in-colour :title
-        (princ it pane)))
-    (in-colour :type
-      (format pane ".~A " (string-downcase (pathname-type relative-path))))
-    (awhen (cdr (pathname-directory relative-path))
-      (in-colour :folder
-        (format pane "~{~A~^ ~}" it)))))
+    (apply #'print-document pane
+           :type (string-downcase (pathname-type relative-path))
+           :folder (cdr (pathname-directory relative-path))
+           data)))
+
+(define-presentation-method present (relative-path (type document) pane (view textual-dialog-view) &key)
+  (princ relative-path pane))
+
+(define-presentation-method accept ((type document) stream (view textual-dialog-view) &key)
+  ;; FIX don't use read
+  (pathname (read-line stream)))
 
 ;; (define-presentation-method accept ((type document) pane view &key default default-type))
+
+(define-presentation-type bib-entry ())
+
+(define-presentation-method presentation-typep (object (type bib-entry))
+  (bibtex-runtime::bib-entry-p object))
+
+(define-presentation-method present (entry (type bib-entry) pane view &key)
+  (print-document pane
+                  :author (mathscinet:bib-entry-author entry)
+                  :title (mathscinet:bib-entry-title entry)
+                  :type (bibtex-runtime:bib-entry-type entry)
+                  :year (mathscinet:bib-entry-year entry)))
