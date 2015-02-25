@@ -120,7 +120,11 @@
                           ;; :anywhere anywhere
                           ))))
 
-(define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry)))
+(define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry))
+  ;; use the current object (if it is a pathname)
+  (with-slots (current-object) *application-frame*
+    (when (pathnamep current-object)
+      (bibtex-storage:associate current-object bib-entry))))
 
 (define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry)))
 
@@ -130,7 +134,7 @@
 (define-presentation-method presentation-typep (object (type document))
   (pathnamep object))
 
-(defun print-document (pane &key author title type year folder)
+(defun print-document (pane &key author title type year folder associated)
   (macrolet ((print-part (name &key prefix infix suffix)
                `(when ,name
                   ,(when prefix `(princ ,prefix pane))
@@ -143,14 +147,15 @@
     (print-part title)
     (print-part type :prefix ".")
     (print-part year :prefix " ")
-    (print-part folder :prefix " " :infix " ")))
-
+    (print-part folder :prefix " " :infix " ")
+    (when associated (princ " *" pane))))
 
 (define-presentation-method present (relative-path (type document) pane view &key)
   (let1 (data (library:filename->metadata relative-path))
     (apply #'print-document pane
            :type (string-downcase (pathname-type relative-path))
            :folder (cdr (pathname-directory relative-path))
+           :associated (bibtex-storage:associated-entry relative-path )
            data)))
 
 (define-presentation-method present (relative-path (type document) pane (view textual-dialog-view) &key)
