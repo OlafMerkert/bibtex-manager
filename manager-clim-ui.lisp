@@ -72,7 +72,7 @@
 (defun display-bib-entries (pane entries)
   (if entries
       (dolist (entry entries)
-        (present (car entry) 'bib-entry :stream pane :single-box t
+        (present entry 'bib-entry :stream pane :single-box t
                  :allow-sensitive-inferiors nil)
         (terpri pane))
       (in-colour :warning (format pane "No Bib entries found!~%"))))

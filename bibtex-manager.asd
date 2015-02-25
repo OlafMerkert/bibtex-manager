@@ -2,6 +2,7 @@
   :depends-on ("ol-utils" "web-utils"
                "drakma" "cxml" "closure-html"
                "css-selectors"
+               "ppcre"
                "bibtex"
                "uiop" "cl-fad"
                "mcclim"

@@ -14,7 +14,9 @@
    #:bib-entry-year
    #:search-bibtex-entries
    #:bibtex-search-uri
-   #:search-bibtex-entries/fallbacks))
+   #:search-bibtex-entries/fallbacks
+   #:bib-entry-doi
+   #:bib-entry-editor))
 
 (in-package :bibtex-manager/mathscinet)
 
@@ -23,24 +25,25 @@
   (let1 (doc (uri->html-document (format nil "http://www.ams.org/mathscinet/search/publications.html?fmt=bibtex&pg1=MR&s1=~A" publication-id)))
     (text-content (first (query "div.doc pre" doc)))))
 
-(defun string->bib-entry (string)
+(defun string->bib-entry (string &optional no-autokey)
   (let ((*bib-database* (make-hash-table :test 'equal)))
-   (with-input-from-string (stream string)
-     (read-bib-database stream))
-   (first (table-values *bib-database*))))
+    (with-input-from-string (stream string)
+      (read-bib-database stream))
+    (aprog1 (first (table-values *bib-database*))
+      (unless no-autokey
+        (setf (bib-entry-cite-key it) (generate-autokey it))))))
 
 (defun bibtex-entries-for-page (page)
   (mapcar (lambda (pre)
             (le1 (bibtex (text-content pre))
-              (cons (string->bib-entry bibtex)
-                    bibtex)))
+              (string->bib-entry bibtex)))
           (query "div.doc pre" page)))
 
 (defmacros! define-bib-entry-accessor (field-name)
   `(defun ,(symb 'bib-entry- field-name) (,g!entry)
      (bib-entry-ref ,(mkstr field-name) ,g!entry)))
 
-(define-bib-entry-accessor author title year)
+(define-bib-entry-accessor author title year doi editor)
 
 (defun subseq- (seq count)
   "Remove `count' elements from `seq'."
@@ -117,3 +120,48 @@
       (search-bibtex-entries :title title)))
 
 ;; (length (search-bibtex-entries :author "Masser"))
+
+;;; compute a nicer bibtex identifier (as emacs does)
+(defun trunc-seq (seq n)
+  "At most the first `n' elements of `seq'."
+  (if (<= (length seq) n) seq
+      (subseq seq 0 n)))
+
+
+(defpar autokey-names-count 2)
+
+(defun autokey-names (names-string)
+  (when names-string
+    (awhen (mapcar (lambda (x) (cdar (bibtex-name-last x)))
+                   (parse-bibtex-name-list names-string))
+      (format nil "~{~(~A~)~^-~}" (trunc-seq it autokey-names-count)))))
+
+(defpar title-terminators "[.!?:;]|--")
+
+(defpar title-fill-words
+    '("A" "An" "On" "The" "Eine?" "Der" "Die" "Das"
+      "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*"))
+
+(defun split1 (regex target-string)
+  (aif (ppcre:scan regex target-string)
+       (subseq target-string 0 it)
+       target-string))
+
+(defpar autokey-titles-count 3)
+
+(defun autokey-title (title-string)
+  (let* ((title-string-begin (split1 title-terminators title-string))
+         (words (ppcre:all-matches-as-strings "\\b\\w+" title-string-begin))
+         (meaning-words (remove-if (lambda (w) (ppcre:scan `(:alternation ,@title-fill-words) w)) words)))
+    (format nil "~{~(~A~)~^-~}" (trunc-seq meaning-words autokey-titles-count))))
+
+(defun generate-autokey (entry)
+  ;; stolen from [[file:/usr/share/emacs/24.4/lisp/textmodes/bibtex.el.gz::(defun%20bibtex-generate-autokey%20()][file:/usr/share/emacs/24.4/lisp/textmodes/bibtex.el.gz::(defun bibtex-generate-autokey ()]]
+  (let ((author (bib-entry-author entry))
+        (editor (bib-entry-editor entry))
+        (year (bib-entry-year entry))
+        (title (bib-entry-title entry)))
+    (format nil "~A-~A-~A"
+            (or (autokey-names author) (autokey-names editor))
+            year
+            (autokey-title title))))
