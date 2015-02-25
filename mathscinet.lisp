@@ -16,7 +16,8 @@
    #:bibtex-search-uri
    #:search-bibtex-entries/fallbacks
    #:bib-entry-doi
-   #:bib-entry-editor))
+   #:bib-entry-editor
+   #:bib-entry-mrnumber))
 
 (in-package :bibtex-manager/mathscinet)
 
@@ -45,6 +46,10 @@
 
 (define-bib-entry-accessor author title year doi editor)
 
+(defun bib-entry-mrnumber (entry)
+  (values (parse-integer (bib-entry-ref "mrnumber" entry)
+                         :junk-allowed t)))
+
 (defun subseq- (seq count)
   "Remove `count' elements from `seq'."
   (subseq seq 0 (- (length seq) count)))
@@ -68,7 +73,7 @@
       ("Series" . "SE")
       ("MSC Primary/Secondary" . "CC")
       ("MSC Primary" . "PC")
-      ("MR Number" . "MR")
+      ("MRNumber" . "MR")
       ("Reviewer" . "RVCN")
       ("Anywhere" . "ALLF")
       ("References" . "REFF")))
@@ -87,11 +92,14 @@
         (count 3))
     (subseq-
      (mapcan (lambda (a-2)
-               (when (and (stringp (second a-2))
-                          (not (length=0 (second a-2))))
-                 (list (keyw :pg (incf count)) (search-term-code (first a-2))
-                       (keyw :s count) (sanitise-string (second a-2))
-                       (keyw :co count) "AND")))
+               (dbind (key value) a-2
+                 (when (integerp value)
+                   (setf value (mkstr value)))
+                 (when (and (stringp value)
+                            (not (length=0 value)))
+                   (list (keyw :pg (incf count)) (search-term-code key)
+                         (keyw :s count) (sanitise-string value)
+                         (keyw :co count) "AND"))))
              args-2)
      2)))
 
