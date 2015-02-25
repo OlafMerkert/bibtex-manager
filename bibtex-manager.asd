@@ -10,4 +10,5 @@
   :serial t
   :components ((:file "mathscinet")
                (:file "library")
+               (:file "bibtex-storage")
                (:file "manager-clim-ui")))
