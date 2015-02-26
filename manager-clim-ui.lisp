@@ -140,7 +140,19 @@
     (when (pathnamep current-object)
       (bibtex-storage:associate current-object bib-entry))))
 
+(define-manager-ui-command (com-list-associated :name "List Associated") ()
+  (with-pane (display-documents pane (remove-if-not #'bibtex-storage:associated-entry
+                                                    library:library-files ))))
+
+(define-manager-ui-command (com-list-associated :name "List UnAssociated") ()
+  (with-pane (display-documents pane (remove-if #'bibtex-storage:associated-entry
+                                                library:library-files ))))
+
 (define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry)))
+
+(define-manager-ui-command (com-bib-show :name "Bib Show" :menu t) ((entry 'bib-entry))
+  (with-pane
+    (bibtex-runtime:write-bib-entry entry pane)))
 
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
