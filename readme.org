@@ -1,0 +1,66 @@
+* Bibtex Manager
+This is an application to help managing your BibTeX database. The ultimate goal is to automate retrieval of BibTeX entries from an online source for systematically named =pdf= files containing articles.
+
+As I am a mathematician, the only source currently available is [[http://www.ams.org/mathscinet/][Mathscinet]]. In principle, it should however be possible to also implement different sources, however this would require replacing the MR number as identifier with something else (maybe DOI?).
+* Main Dependencies
+Apart from libraries available through [[http://www.quicklisp.org/][Quicklisp]], the following systems are required (currently only available on my GitHub):
++ [[https://github.com/OlafMerkert/ol-utils][ol-utils]] (various utilities)
++ [[https://github.com/OlafMerkert/web-utils][web-utils]] (scraping utilities)
+At this place, I also want to mention the excellent [[http://www.nongnu.org/cl-bibtex/][CL-BibTeX]], which takes complete care of parsing and writing out BibTeX entries.
+
+Currently, the application has only been tested with [[http://www.sbcl.org/][SBCL]] 2.49 on linux, the main obstacle for other implementations is probably [[https://common-lisp.net/project/mcclim/][McCLIM]].
+* Components
+** Mathscinet retrieval
++ Generating queries, modeling the search form
++ Scraping BibTeX code (only available as part of HTML page)
++ additional accessors for =bibtex-entry=
++ generate human readable =cite-keys=, inspired by =generate-autokey= from =bibtex.el=
+** Article library scanning
++ list and filter the contents of your math article collection, assuming everything is somewhere under a single folder
++ heuristically extract authors and title from the filename
+** BibTeX database backend
++ loading and saving of BibTeX entries from =.bib= files
++ loading and saving of table assigning bib-entries to documents/articles
++ managing said table, automatic retrieval of BibTeX if MR number is known
+** CLIM UI
+Integrates the backend functionality, so one may list files, search Mathscinet for them, pick the right =bib-entry= from the results and associate it to a file. Also allows free form searches, and just storing a single =bib-entry=.
+
+Why do I use CLIM? It is simply cool, and the presentations are a really useful feature, especially for an application like this. And with the interactor, one gets a "command line feel".
+* How to use it
+If you can figure out how to use the CLIM interface, the available commands should be rather self-explanatory.
+** TODO user guide for CLIM
+* Tasks
+** DONE perhaps the original bibtex is redundant?
+   [[file:mathscinet.lisp::(cons%20(string->bib-entry%20bibtex)][file:~/Projekte/bibtex-manager/mathscinet.lisp::(cons (string->bib-entry bibtex)]]
+** DONE add other fields as necessary
+   [[file:mathscinet.lisp::(define-bib-entry-accessor%20author%20title%20year][file:~/Projekte/bibtex-manager/mathscinet.lisp::(define-bib-entry-accessor]]
+** TODO move into ol-utils?
+   [[file:mathscinet.lisp::(defun%20subseq-%20(seq%20count)][file:~/Projekte/bibtex-manager/mathscinet.lisp::(defun subseq- (seq count)]]
+** TODO CLIM interface [5/6]
+*** DONE list all files
+*** DONE show meta information
+*** TODO search files
+*** DONE associate bibtex information
+*** DONE display bibtex information
+*** DONE find files without bibtex information
+** TODO library management
+** TODO automatically relax search criteria if nothing is found
+   [[file:~/Projekte/bibtex-manager/manager-clim-ui.lisp::(let1%20(entries%20(apply%20#'mathscinet:search-bibtex-entries%20(library:filename->metadata%20file)))][file:~/Projekte/bibtex-manager/manager-clim-ui.lisp::(let1 (entries (apply #'mathscinet:search-bibtex-entries (library:filename->metadata file)))]]
+** DONE store bibtex information
+   [[file:~/Projekte/bibtex-manager/manager-clim-ui.lisp::(define-manager-ui-command%20(com-bib-associate%20:name%20"Bib%20Associate")%20((bib-entry%20'bib-entry)))][file:~/Projekte/bibtex-manager/manager-clim-ui.lisp::(define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry)))]]
++ [ ] keep track of the files by saving pathname -> doi mapping
++ [ ] manage the contents of file:~/Perfezionamento/topics/topics.bib
+** TODO limit displayed search results
+** DONE accessor for doi
+   [[file:~/Projekte/bibtex-manager/mathscinet.lisp::(define-bib-entry-accessor%20author%20title%20year)][file:~/Projekte/bibtex-manager/mathscinet.lisp::(define-bib-entry-accessor author title year)]]
+** DONE associating filenames with bibtex entries
+currently we indirect over the MR number. But actually, this does not make a lot of sense. Once we figured out how to efficiently retrieve entries for a given MR.
+
+When starting the app, we have to read the current bibtex collection, and also a mapping file which tells us which file has which MR number. We then might try to traverse the collection.
+
+** DONE memoise =bib-entry-mrnumber=
+because otherwise we call parse-integer all the time?
+[[file:mathscinet.lisp::(defun%20bib-entry-mrnumber%20(entry)][file:mathscinet.lisp::(defun bib-entry-mrnumber (entry)]]
+** TODO add file location information to bibtex entry
+*** TODO how is that even useful on the TeX side?
+*** TODO how does it integrate with org-ref?

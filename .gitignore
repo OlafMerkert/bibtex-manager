@@ -1,2 +1,6 @@
 *~
 *.fasl
+/readme.html
+/readme.pdf
+/readme.tex
+/auto/
