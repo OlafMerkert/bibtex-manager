@@ -8,7 +8,10 @@
    #:regex-separation-filter
    #:all-files-in-library
    #:library-root
-   #:library-files))
+   #:library-files
+   #:all-folders-in-library
+   #:pathname-folder
+   #:files-in-folders))
 
 (in-package :bibtex-manager/library)
 
@@ -84,3 +87,15 @@ relative to it."
           (all-files-in-library)))
 
 (defpar library-files (all-files-in-library/relative))
+
+(defun pathname-folder (pathname)
+  (or (cdr (pathname-directory pathname))
+      (list "/")))
+
+(defun all-folders-in-library (&optional (files library-files))
+  (sort (remove-duplicates (mapcar #'pathname-folder files) :test 'equal)
+        #'string<
+        :key (lambda (f) (string-join f " "))))
+
+(defun files-in-folders (folder &optional (files library-files))
+  (remove folder files :test-not 'equal :key #'pathname-folder ))

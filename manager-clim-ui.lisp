@@ -30,6 +30,7 @@
       (present current-object
                (cond ((pathnamep current-object) 'document)
                      ((bibtex-runtime::bib-entry-p current-object) 'bib-entry)
+                     ((listp current-object) 'folder)
                      (t (presentation-type-of current-object)))
                :stream pane
                :single-box t
@@ -43,8 +44,8 @@
      ,@body))
 
 (defpar colour-table
-    `((:title  . ,+red+)
-      (:author . ,+blue+)
+    `((:title  . ,+blue+)
+      (:author . ,+black+)
       (:folder . ,+black+)
       (:type   . ,+gray+)
       (:year   . ,+black+)
@@ -62,20 +63,33 @@
   ;; (with-pane)
   )
 
-(define-manager-ui-command (com-list-all :name "List All") ()
-  (with-pane
-    (dolist (file library:library-files)
-      (present file 'document :stream pane :single-box t
-               :allow-sensitive-inferiors nil)
-      (terpri pane))))
+(defun display-documents (pane files)
+  (dolist (file files)
+    (present file 'document :stream pane :single-box t)
+    (terpri pane)))
+
+(defun diplay-folders (pane folders)
+  (dolist (folder folders)
+    (present folder 'folder :stream pane :single-box t)
+    (terpri pane)))
 
 (defun display-bib-entries (pane entries)
   (if entries
       (dolist (entry entries)
-        (present entry 'bib-entry :stream pane :single-box t
-                 :allow-sensitive-inferiors nil)
+        (present entry 'bib-entry :stream pane :single-box t)
         (terpri pane))
       (in-colour :warning (format pane "No Bib entries found!~%"))))
+
+(define-manager-ui-command (com-list-all :name "List All") ()
+  (with-pane (display-documents pane library:library-files)))
+
+(define-manager-ui-command (com-list-folders :name "List Folders") ()
+  (with-pane (display-folders pane (library:all-folders-in-library))))
+
+(define-manager-ui-command (com-list-folder :name "List Folder")
+    ((folder 'folder))
+  (setf (current-object *application-frame*) folder)
+  (with-pane (display-documents pane (library:files-in-folders folder))))
 
 (define-manager-ui-command (com-bib-lookup :name "Bib Lookup")
     ((file 'document))
@@ -147,14 +161,18 @@
     (print-part title)
     (print-part type :prefix ".")
     (print-part year :prefix " ")
-    (print-part folder :prefix " " :infix " ")
+    ;; (print-part folder :prefix " " :infix " ")
+    (when folder
+      (princ " " pane)
+      (in-colour :folder
+        (present folder 'folder :stream pane)))
     (when associated (princ " *" pane))))
 
 (define-presentation-method present (relative-path (type document) pane view &key)
   (let1 (data (library:filename->metadata relative-path))
     (apply #'print-document pane
            :type (string-downcase (pathname-type relative-path))
-           :folder (cdr (pathname-directory relative-path))
+           :folder (library:pathname-folder relative-path)
            :associated (bibtex-storage:associated-entry relative-path )
            data)))
 
@@ -177,6 +195,22 @@
                   :title (mathscinet:bib-entry-title entry)
                   :type (bibtex-runtime:bib-entry-type entry)
                   :year (mathscinet:bib-entry-year entry)))
+
+(define-presentation-type folder ())
+
+(define-presentation-method presentation-typep (object (type folder))
+  (and (listp object)
+       (every #'stringp object)))
+
+(define-presentation-method present (folder (type folder) pane view &key)
+  (princ (string-join folder " ") pane))
+
+;; use slashes in the dialog
+(define-presentation-method present (folder (type folder) pane (view textual-dialog-view) &key)
+  (princ (string-join folder "/") pane))
+
+(define-presentation-method accept ((type folder) stream (view textual-dialog-view) &key)
+  (split-sequence:split-sequence #\/ (read-line stream)))
 
 ;; Local Variables:
 ;; clim-application: manager-ui
