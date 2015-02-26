@@ -46,7 +46,7 @@
 
 (define-bib-entry-accessor author title year doi editor)
 
-(defun bib-entry-mrnumber (entry)
+(memodefun bib-entry-mrnumber (entry)
   (values (parse-integer (bib-entry-ref "mrnumber" entry)
                          :junk-allowed t)))
 
