@@ -22,7 +22,11 @@
   (:layouts (default (vertically () main current-object-pane int))))
 
 (defun manager-ui ()
-  (run-frame-top-level (make-instance 'manager-ui)))
+  ;; before starting, we read in the library data
+  (bibtex-storage:load-manager-data)
+  (run-frame-top-level (make-instance 'manager-ui))
+  ;; and after closing, we automatically save the data
+  (bibtex-storage:save-manager-data))
 
 (defun show-current-object (frame pane)
   (with-slots (current-object) frame
