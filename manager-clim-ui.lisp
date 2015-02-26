@@ -80,6 +80,7 @@
         (terpri pane))
       (in-colour :warning (format pane "No Bib entries found!~%"))))
 
+;;; file listing
 (define-manager-ui-command (com-list-all :name "List All") ()
   (with-pane (display-documents pane library:library-files)))
 
@@ -91,6 +92,28 @@
   (setf (current-object *application-frame*) folder)
   (with-pane (display-documents pane (library:files-in-folders folder))))
 
+;;; search command
+(define-manager-ui-command (com-bib-search :name "Search All" :menu t)
+    ((anywhere 'string :prompt "All fields"))
+  (with-pane
+    (display-bib-entries pane (mathscinet:search-bibtex-entries :anywhere anywhere ))))
+
+(define-manager-ui-command (com-bib-search-author :name "Search Author" :menu t)
+    ((author 'string :prompt "Author"))
+  (with-pane
+    (display-bib-entries pane (mathscinet:search-bibtex-entries :author author))))
+
+(define-manager-ui-command (com-bib-search-title :name "Search Title" :menu t)
+    ((title 'string :prompt "Title"))
+  (with-pane
+    (display-bib-entries pane (mathscinet:search-bibtex-entries :title title))))
+
+(define-manager-ui-command (com-bib-search-mr :name "Search MR")
+    ((mr-number 'integer :prompt "MR"))
+  (with-pane
+    (display-bib-entries pane (mathscinet:search-bibtex-entries :mrnumber mr-number))))
+
+;;; 
 (define-manager-ui-command (com-bib-lookup :name "Bib Lookup")
     ((file 'document))
   (setf (current-object *application-frame*) file)
@@ -98,42 +121,8 @@
     (display-bib-entries pane (apply #'mathscinet:search-bibtex-entries/fallbacks
                                      (library:filename->metadata file)))))
 
-(define-manager-ui-command (com-bib-search :name "Search All" :menu t)
-    (;; (title    'string :prompt "Title")
-     ;; (author   'string :prompt "Author")
-     (anywhere 'string :prompt "All fields"))
-  (with-pane
-    (display-bib-entries pane
-                         (mathscinet:search-bibtex-entries
-                          ;; :title title :author author
-                          :anywhere anywhere ))))
 
-(define-manager-ui-command (com-bib-search-author :name "Search Author" :menu t)
-    (;; (title    'string :prompt "Title")
-     (author   'string :prompt "Author")
-     ;; (anywhere 'string :prompt "All fields")
-     )
-  (with-pane
-    (display-bib-entries pane
-                         (mathscinet:search-bibtex-entries
-                          ;; :title title
-                          :author author
-                          ;; :anywhere anywhere
-                          ))))
-
-(define-manager-ui-command (com-bib-search-title :name "Search Title" :menu t)
-    ((title    'string :prompt "Title")
-     ;; (author   'string :prompt "Author")
-     ;; (anywhere 'string :prompt "All fields")
-     )
-  (with-pane
-    (display-bib-entries pane
-                         (mathscinet:search-bibtex-entries
-                          :title title
-                          ;; :author author
-                          ;; :anywhere anywhere
-                          ))))
-
+;;; association
 (define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry))
   ;; use the current object (if it is a pathname)
   (with-slots (current-object) *application-frame*
@@ -148,6 +137,7 @@
   (with-pane (display-documents pane (remove-if #'bibtex-storage:associated-entry
                                                 library:library-files ))))
 
+;;; bib library management
 (define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry)))
 
 (define-manager-ui-command (com-bib-show :name "Bib Show" :menu t) ((entry 'bib-entry))
