@@ -59,21 +59,28 @@
   (with-pane (window-clear pane)))
 
 ;; a command for testing code
-(define-manager-ui-command (com-go :name "Go" :menu t) ()
-  ;; (with-pane)
-  )
+;; (define-manager-ui-command (com-go :name "Go" :menu t) ()
+;;   ;; (with-pane)
+;;   )
+
+(defun new-section (pane &optional force)
+  (declare (ignore force))
+  (terpri pane))
 
 (defun display-documents (pane files)
+  (new-section pane)
   (dolist (file files)
     (present file 'document :stream pane :single-box t)
     (terpri pane)))
 
-(defun diplay-folders (pane folders)
+(defun display-folders (pane folders)
+  (new-section pane)
   (dolist (folder folders)
     (present folder 'folder :stream pane :single-box t)
     (terpri pane)))
 
 (defun display-bib-entries (pane entries)
+  (new-section pane)
   (if entries
       (dolist (entry entries)
         (present entry 'bib-entry :stream pane :single-box t)
@@ -133,12 +140,14 @@
   (with-pane (display-documents pane (remove-if-not #'bibtex-storage:associated-entry
                                                     library:library-files ))))
 
-(define-manager-ui-command (com-list-associated :name "List UnAssociated") ()
+(define-manager-ui-command (com-list-unassociated :name "List UnAssociated") ()
   (with-pane (display-documents pane (remove-if #'bibtex-storage:associated-entry
                                                 library:library-files ))))
 
 ;;; bib library management
-(define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry)))
+(define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry))
+  ;; todo implement
+  )
 
 (define-manager-ui-command (com-bib-show :name "Bib Show" :menu t) ((entry 'bib-entry))
   (with-pane
