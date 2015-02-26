@@ -150,8 +150,7 @@
 
 ;;; bib library management
 (define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry))
-  ;; todo implement
-  )
+  (bibtex-storage:save-bib-entry bib-entry))
 
 (define-manager-ui-command (com-bib-show :name "Bib Show" :menu t) ((entry 'bib-entry))
   (with-pane

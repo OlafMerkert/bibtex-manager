@@ -7,7 +7,9 @@
    #:associated-entry
    #:associate
    #:save-manager-data
-   #:load-manager-data))
+   #:load-manager-data
+   #:map-bib-file
+   #:save-bib-entry))
 
 (in-package :bibtex-manager/bibtex-storage)
 
