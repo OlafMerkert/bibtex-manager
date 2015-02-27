@@ -130,38 +130,38 @@
 ;; (length (search-bibtex-entries :author "Masser"))
 
 ;;; compute a nicer bibtex identifier (as emacs does)
-(defun trunc-seq (seq n)
-  "At most the first `n' elements of `seq'."
-  (if (<= (length seq) n) seq
-      (subseq seq 0 n)))
 
-
-(defpar autokey-names-count 2)
+(defpar autokey-names-count 2
+        autokey-titles-count 3
+        title-terminators "[.!?:;]|--"
+        title-fill-words '("A" "An" "[au]nd" "On" "The" "Eine?" "Der" "Die" "Das" "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*"))
 
 (defun autokey-names (names-string)
   (when names-string
     (awhen (mapcar (lambda (x) (cdar (bibtex-name-last x)))
                    (parse-bibtex-name-list names-string))
-      (format nil "~{~(~A~)~^-~}" (trunc-seq it autokey-names-count)))))
-
-(defpar title-terminators "[.!?:;]|--")
-
-(defpar title-fill-words
-    '("A" "An" "On" "The" "Eine?" "Der" "Die" "Das"
-      "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*"))
+      (format nil "~{~(~A~)~^-~}" (take autokey-names-count it)))))
 
 (defun split1 (regex target-string)
   (aif (ppcre:scan regex target-string)
        (subseq target-string 0 it)
        target-string))
 
-(defpar autokey-titles-count 3)
+(defun match-completely-p (regex string)
+  "Test if the `regex' matches the entire `string'."
+  (mvbind (start end) (ppcre:scan regex string)
+    (and start (= 0 start) (= (length string) end))))
+
+(defun word-match-regex (words)
+  `(:sequence :start-anchor
+              (:alternation ,@(mapcar #`(:regex ,a1) words))
+              :end-anchor))
 
 (defun autokey-title (title-string)
-  (let* ((title-string-begin (split1 title-terminators title-string))
-         (words (ppcre:all-matches-as-strings "\\b\\w+" title-string-begin))
-         (meaning-words (remove-if (lambda (w) (ppcre:scan `(:alternation ,@title-fill-words) w)) words)))
-    (format nil "~{~(~A~)~^-~}" (trunc-seq meaning-words autokey-titles-count))))
+  (let* ((title-string (split1 title-terminators title-string))
+         (words (ppcre:all-matches-as-strings "\\b\\w+" title-string))
+         (meaning-words (remove-if (clambda (ppcre:scan (word-match-regex title-fill-words) x!w)) words)))
+    (format nil "~{~(~A~)~^-~}" (take autokey-titles-count meaning-words))))
 
 (defun generate-autokey (entry)
   ;; stolen from [[file:/usr/share/emacs/24.4/lisp/textmodes/bibtex.el.gz::(defun%20bibtex-generate-autokey%20()][file:/usr/share/emacs/24.4/lisp/textmodes/bibtex.el.gz::(defun bibtex-generate-autokey ()]]
