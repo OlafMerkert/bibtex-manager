@@ -9,7 +9,8 @@
    #:save-manager-data
    #:load-manager-data
    #:map-bib-file
-   #:save-bib-entry))
+   #:save-bib-entry
+   #:*mrnumber-bibtex-table*))
 
 (in-package :bibtex-manager/bibtex-storage)
 
@@ -88,7 +89,7 @@
                        table))
                *document-bibtex-table*)
       (push :document-mr-table table)
-      (print table stream))))
+      (print (list table) stream))))
 
 (defun load-manager-data ()
   ;; we reset the bibtex-table
