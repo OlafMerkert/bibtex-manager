@@ -141,8 +141,9 @@
     ((file 'document))
   (setf (current-object *application-frame*) file)
   (with-pane
-    (display-bib-entries pane (apply #'mathscinet:search-bibtex-entries/fallbacks
-                                     (library:filename->metadata file)))))
+    (display-bib-entries pane (take (result-count *application-frame*)
+                                    (apply #'mathscinet:search-bibtex-entries/fallbacks
+                                           (library:filename->metadata file))))))
 
 
 ;;; association
@@ -169,10 +170,18 @@
 
 (define-manager-ui-command (com-bib-show :name "Bib Show" :menu t) ((entry 'bib-entry))
   (with-pane
+    (new-section pane)
     (bibtex-runtime:write-bib-entry entry pane)))
 
 (define-manager-ui-command (com-open-file :name "Open File") ((document 'document))
   (run-program "/usr/bin/xdg-open" (mkstr (library:library-path document))))
+
+(define-manager-ui-command (com-bib-entry :name "Bib Entry" :menu t)
+    ((document 'document))
+  (setf (current-object *application-frame*) document)
+  (awhen (bibtex-storage:associated-entry document)
+    (with-pane (new-section pane)
+               (display-bib-entries pane (list it)))))
 
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
@@ -243,6 +252,19 @@
 
 (define-presentation-method accept ((type folder) stream (view textual-dialog-view) &key)
   (split-sequence:split-sequence #\/ (read-line stream)))
+
+;;; translate clicks to commands
+(define-presentation-to-command-translator translate-bib-show
+    (bib-entry com-bib-show manager-ui)
+    (object) (list object))
+
+(define-presentation-to-command-translator translate-open-file
+    (document com-open-file manager-ui)
+    (object) (list object))
+
+(define-presentation-to-command-translator translate-list-folder
+    (folder com-list-folder manager-ui)
+    (object) (list object))
 
 ;; Local Variables:
 ;; clim-application: manager-ui
