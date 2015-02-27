@@ -8,7 +8,9 @@
 
 (define-application-frame manager-ui ()
   ((current-object :initform nil
-                   :accessor current-object))
+                   :accessor current-object)
+   (result-count :initform 10
+                 :accessor result-count))
   (:panes (main :application
                 :width ui-width :height 600
                 :scroll-bars t
@@ -91,6 +93,12 @@
         (terpri pane))
       (in-colour :warning (format pane "No Bib entries found!~%"))))
 
+;;; setting app options
+(define-manager-ui-command (com-set-result-count :name "Set Result Count") ((count 'integer :prompt "Count"))
+  (with-pane
+    (format pane "Display at most ~D results.~%"
+            (setf (result-count *application-frame*) (max 50 count)))))
+
 ;;; file listing
 (define-manager-ui-command (com-list-all :name "List All") ()
   (with-pane (display-documents pane library:library-files)))
@@ -107,22 +115,26 @@
 (define-manager-ui-command (com-bib-search :name "Search All" :menu t)
     ((anywhere 'string :prompt "All fields"))
   (with-pane
-    (display-bib-entries pane (mathscinet:search-bibtex-entries :anywhere anywhere ))))
+    (display-bib-entries pane (take (result-count *application-frame*)
+                                    (mathscinet:search-bibtex-entries :anywhere anywhere )))))
 
 (define-manager-ui-command (com-bib-search-author :name "Search Author" :menu t)
     ((author 'string :prompt "Author"))
   (with-pane
-    (display-bib-entries pane (mathscinet:search-bibtex-entries :author author))))
+    (display-bib-entries pane (take (result-count *application-frame*)
+                                    (mathscinet:search-bibtex-entries :author author)))))
 
 (define-manager-ui-command (com-bib-search-title :name "Search Title" :menu t)
     ((title 'string :prompt "Title"))
   (with-pane
-    (display-bib-entries pane (mathscinet:search-bibtex-entries :title title))))
+    (display-bib-entries pane (take (result-count *application-frame*)
+                                    (mathscinet:search-bibtex-entries :title title)))))
 
 (define-manager-ui-command (com-bib-search-mr :name "Search MR")
     ((mr-number 'integer :prompt "MR"))
   (with-pane
-    (display-bib-entries pane (mathscinet:search-bibtex-entries :mrnumber mr-number))))
+    (display-bib-entries pane (take (result-count *application-frame*)
+                                    (mathscinet:search-bibtex-entries :mrnumber mr-number)))))
 
 ;;; 
 (define-manager-ui-command (com-bib-lookup :name "Bib Lookup")
@@ -134,7 +146,7 @@
 
 
 ;;; association
-(define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry))
+(define-manager-ui-command (com-bib-associate :name "Bib Associate" :menu t) ((bib-entry 'bib-entry))
   ;; use the current object (if it is a pathname)
   (with-slots (current-object) *application-frame*
     (when (pathnamep current-object)
@@ -147,6 +159,9 @@
 (define-manager-ui-command (com-list-unassociated :name "List UnAssociated") ()
   (with-pane (display-documents pane (remove-if #'bibtex-storage:associated-entry
                                                 library:library-files ))))
+
+(define-manager-ui-command (com-list-library :name "List Library") ()
+  (with-pane (display-bib-entries pane (table-values bibtex-storage:*mrnumber-bibtex-table*))))
 
 ;;; bib library management
 (define-manager-ui-command (com-bib-store :name "Bib Store") ((bib-entry 'bib-entry))
