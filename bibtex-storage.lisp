@@ -20,9 +20,6 @@
 (defpar bib-files '("topics.bib"))
 (defpar mrnumber-database "mrnumbers.sexp")
 
-(defun library-file (file)
-  (merge-pathnames file library:library-root))
-
 ;; we store all bib-entries in a hash-table, indexed by the mrnumber
 (defvar *mrnumber-bibtex-table*
   (make-hash-table))
@@ -95,15 +92,15 @@
   ;; we reset the bibtex-table
   (setf *document-bibtex-table* (make-hash-table :test 'eql))
   ;; we read in all bib files
-  (apply #'load-bib-file (mapcar #'library-file bib-files))
+  (apply #'load-bib-file (mapcar #'library:library-path bib-files))
   ;; then, we load the pathname mappings
-  (load-document-mr-table (library-file mrnumber-database)))
+  (load-document-mr-table (library:library-path mrnumber-database)))
 
 (defun save-manager-data ()
   ;; first store the documents table
-  (save-document-mr-table (library-file mrnumber-database))
+  (save-document-mr-table (library:library-path mrnumber-database))
   ;; then write out to the first bib file
-  (save-bib-table (library-file (first bib-files))))
+  (save-bib-table (library:library-path (first bib-files))))
 
 (defgeneric associate (obj-1 obj-2))
 

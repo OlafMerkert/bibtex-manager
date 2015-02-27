@@ -8,7 +8,7 @@ Apart from libraries available through [[http://www.quicklisp.org/][Quicklisp]],
 + [[https://github.com/OlafMerkert/web-utils][web-utils]] (scraping utilities)
 At this place, I also want to mention the excellent [[http://www.nongnu.org/cl-bibtex/][CL-BibTeX]], which takes complete care of parsing and writing out BibTeX entries.
 
-Currently, the application has only been tested with [[http://www.sbcl.org/][SBCL]] 2.49 on linux, the main obstacle for other implementations is probably [[https://common-lisp.net/project/mcclim/][McCLIM]].
+Currently, the application has only been tested with [[http://www.sbcl.org/][SBCL]] 1.2.6.20 on linux, the main obstacle for other implementations is probably [[https://common-lisp.net/project/mcclim/][McCLIM]].
 * Components
 ** Mathscinet retrieval
 + Generating queries, modeling the search form
@@ -64,3 +64,5 @@ because otherwise we call parse-integer all the time?
 ** TODO add file location information to bibtex entry
 *** TODO how is that even useful on the TeX side?
 *** TODO how does it integrate with org-ref?
+** DONE open file command
+** TODO perhaps completely separate output for documents and bib-entries

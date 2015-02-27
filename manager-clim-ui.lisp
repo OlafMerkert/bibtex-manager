@@ -171,6 +171,9 @@
   (with-pane
     (bibtex-runtime:write-bib-entry entry pane)))
 
+(define-manager-ui-command (com-open-file :name "Open File") ((document 'document))
+  (run-program "/usr/bin/xdg-open" (mkstr (library:library-path document))))
+
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
 

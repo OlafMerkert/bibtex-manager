@@ -11,11 +11,15 @@
    #:library-files
    #:all-folders-in-library
    #:pathname-folder
-   #:files-in-folders))
+   #:files-in-folders
+   #:library-path))
 
 (in-package :bibtex-manager/library)
 
 (defpar library-root (first (uiop:directory* "~/Perfezionamento/topics/")))
+
+(defun library-path (file)
+  (merge-pathnames file library:library-root))
 
 (defpar excluded-file-endings '("bib" "tex"))
 
