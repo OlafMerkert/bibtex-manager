@@ -17,7 +17,8 @@
    #:search-bibtex-entries/fallbacks
    #:bib-entry-doi
    #:bib-entry-editor
-   #:bib-entry-mrnumber))
+   #:bib-entry-mrnumber
+   #:generate-autokey))
 
 (in-package :bibtex-manager/mathscinet)
 
@@ -133,8 +134,9 @@
 
 (defpar autokey-names-count 2
         autokey-titles-count 3
+        title-tex-chars "[{}\\\\\\'\"]"
         title-terminators "[.!?:;]|--"
-        title-fill-words '("A" "An" "[au]nd" "On" "The" "Eine?" "Der" "Die" "Das" "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*"))
+        title-fill-words '("A" "An" "[au]nd" "of" "by" "for" "et" "in" "On" "The" "Eine?" "Der" "Die" "Das" "[^[:upper:]].*" ".*[^[:upper:][:lower:]0-9].*"))
 
 (defun autokey-names (names-string)
   (when names-string
@@ -158,7 +160,8 @@
               :end-anchor))
 
 (defun autokey-title (title-string)
-  (let* ((title-string (split1 title-terminators title-string))
+  (let* ((title-string (ppcre:regex-replace-all title-tex-chars title-string ""))
+         (title-string (split1 title-terminators title-string))
          (words (ppcre:all-matches-as-strings "\\b\\w+" title-string))
          (meaning-words (remove-if (clambda (ppcre:scan (word-match-regex title-fill-words) x!w)) words)))
     (format nil "~{~(~A~)~^-~}" (take autokey-titles-count meaning-words))))
