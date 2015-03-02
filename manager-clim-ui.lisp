@@ -130,6 +130,14 @@
     (display-bib-entries pane (take (result-count *application-frame*)
                                     (mathscinet:search-bibtex-entries :title title)))))
 
+(define-manager-ui-command (com-bib-search-author-title :name "Search Default" :menu t)
+    ((author 'string :prompt "Author")
+     (title 'string :prompt "Title"))
+  (with-pane
+    (display-bib-entries pane (take (result-count *application-frame*)
+                                    (mathscinet:search-bibtex-entries :title title
+                                                                      :author author)))))
+
 (define-manager-ui-command (com-bib-search-mr :name "Search MR")
     ((mr-number 'integer :prompt "MR"))
   (with-pane
@@ -171,7 +179,8 @@
 (define-manager-ui-command (com-bib-show :name "Bib Show" :menu t) ((entry 'bib-entry))
   (with-pane
     (new-section pane)
-    (bibtex-runtime:write-bib-entry entry pane)))
+    (with-text-family (pane :fix)
+      (bibtex-runtime:write-bib-entry entry pane))))
 
 (define-manager-ui-command (com-open-file :name "Open File") ((document 'document))
   (run-program "/usr/bin/xdg-open" (mkstr (library:library-path document))))
