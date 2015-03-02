@@ -118,3 +118,9 @@
 
 (defun associated-entry (path)
   (gethash path *document-bibtex-table*))
+
+(defun regenerate-cite-keys ()
+  (maphash-values (lambda (entry)
+                    (setf (bibtex-runtime:bib-entry-cite-key entry)
+                          (mathscinet:generate-autokey entry)))
+                  *document-bibtex-table*))
