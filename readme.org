@@ -66,3 +66,11 @@ because otherwise we call parse-integer all the time?
 *** TODO how does it integrate with org-ref?
 ** DONE open file command
 ** TODO perhaps completely separate output for documents and bib-entries
+** TODO find portable =symlink= function
+   [[file:~/Projekte/bibtex-manager/bibtex-storage.lisp::(sb-posix:symlink%20(library:library-path%20document)%20it))))][file:~/Projekte/bibtex-manager/bibtex-storage.lisp::(sb-posix:symlink (library:library-path document) it))))]]
+** TODO how about renaming files to cite-key?
+   [[file:~/Projekte/bibtex-manager/bibtex-storage.lisp::(defun%20document-create-symlink%20(document)][file:~/Projekte/bibtex-manager/bibtex-storage.lisp::(defun document-create-symlink (document)]]
+this would be useful for integration with helm-bibtex. But
++ afaik, helm-bibtex requires everything in one dir, so we lose hierarchy
++ also, helm-bibtex assumes everything to be a PDF. Again, we lose info
++ this is delicate if a document is split into several files (eg chapters)

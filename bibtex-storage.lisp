@@ -124,3 +124,24 @@
                     (setf (bibtex-runtime:bib-entry-cite-key entry)
                           (mathscinet:generate-autokey entry)))
                   *document-bibtex-table*))
+
+(defpar library-symlink-path (first (uiop:directory*
+                                     (aprog1 #P"~/.cache/bibtex-manager/links/"
+                                             (ensure-directories-exist it)))))
+
+
+(defun document-symlink-path (document)
+  (awhen (associated-entry document)
+    (make-pathname :name (bibtex-runtime:bib-entry-cite-key it)
+                   :type "pdf"
+                   :defaults library-symlink-path)))
+
+(defun document-create-symlink (document)
+  (awhen (document-symlink-path document)
+    (or (uiop:file-exists-p it)
+        (sb-posix:symlink (library:library-path document) it))))
+
+(defun library-create-symlinks ()
+  (mapcar #'document-create-symlink
+          (remove-if-not #'bibtex-storage:associated-entry
+                         library:library-files )))
