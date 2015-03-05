@@ -104,11 +104,12 @@
 
 (defgeneric associate (obj-1 obj-2))
 
-(defmethod associate ((path pathname) (entry bibtex-runtime::bib-entry))
+(defmethod associate ((document pathname) (entry bibtex-runtime::bib-entry))
   ;; make sure to put this entry into our database
   (save-bib-entry entry)
-  ;; then associate the path with it
-  (setf (gethash path *document-bibtex-table*) entry))
+  ;; then associate the document with it
+  (setf (gethash document *document-bibtex-table*) entry)
+  (document-create-symlink document))
 
 (defmethod associate ((path pathname) (mrnumber integer))
   ;; retrieve entry from local storage or from mathscinet, if

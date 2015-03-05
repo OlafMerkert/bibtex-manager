@@ -155,11 +155,11 @@
 
 
 ;;; association
-(define-manager-ui-command (com-bib-associate :name "Bib Associate" :menu t) ((bib-entry 'bib-entry))
+(define-manager-ui-command (com-bib-associate :name "Bib Associate" :menu t)
+    ((document 'document) (bib-entry 'bib-entry))
   ;; use the current object (if it is a pathname)
-  (with-slots (current-object) *application-frame*
-    (when (pathnamep current-object)
-      (bibtex-storage:associate current-object bib-entry))))
+  (when (pathnamep document)
+    (bibtex-storage:associate document bib-entry)))
 
 (define-manager-ui-command (com-list-associated :name "List Associated") ()
   (with-pane (display-documents pane (remove-if-not #'bibtex-storage:associated-entry
