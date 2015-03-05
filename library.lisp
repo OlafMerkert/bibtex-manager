@@ -90,16 +90,17 @@ relative to it."
   (mapcar (lambda (path) (ensure-pathname-relative path library-root))
           (all-files-in-library)))
 
-(defpar library-files (all-files-in-library/relative))
+(defun library-files ()
+  (all-files-in-library/relative))
 
 (defun pathname-folder (pathname)
   (or (cdr (pathname-directory pathname))
       (list "/")))
 
-(defun all-folders-in-library (&optional (files library-files))
+(defun all-folders-in-library (&optional (files (library-files)))
   (sort (remove-duplicates (mapcar #'pathname-folder files) :test 'equal)
         #'string<
         :key (lambda (f) (string-join f " "))))
 
-(defun files-in-folders (folder &optional (files library-files))
+(defun files-in-folders (folder &optional (files (library-files)))
   (remove folder files :test-not 'equal :key #'pathname-folder ))

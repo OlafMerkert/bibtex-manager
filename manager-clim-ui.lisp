@@ -101,7 +101,7 @@
 
 ;;; file listing
 (define-manager-ui-command (com-list-all :name "List All") ()
-  (with-pane (display-documents pane library:library-files)))
+  (with-pane (display-documents pane (library:library-files))))
 
 (define-manager-ui-command (com-list-folders :name "List Folders") ()
   (with-pane (display-folders pane (library:all-folders-in-library))))
@@ -163,11 +163,11 @@
 
 (define-manager-ui-command (com-list-associated :name "List Associated") ()
   (with-pane (display-documents pane (remove-if-not #'bibtex-storage:associated-entry
-                                                    library:library-files ))))
+                                                    (library:library-files) ))))
 
 (define-manager-ui-command (com-list-unassociated :name "List UnAssociated") ()
   (with-pane (display-documents pane (remove-if #'bibtex-storage:associated-entry
-                                                library:library-files ))))
+                                                (library:library-files) ))))
 
 (define-manager-ui-command (com-list-library :name "List Library") ()
   (with-pane (display-bib-entries pane (table-values bibtex-storage:*mrnumber-bibtex-table*))))
