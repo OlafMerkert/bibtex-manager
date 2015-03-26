@@ -10,7 +10,8 @@
    #:load-manager-data
    #:map-bib-file
    #:save-bib-entry
-   #:*mrnumber-bibtex-table*))
+   #:*mrnumber-bibtex-table*
+   #:library-create-symlinks))
 
 (in-package :bibtex-manager/bibtex-storage)
 
@@ -145,4 +146,4 @@
 (defun library-create-symlinks ()
   (mapcar #'document-create-symlink
           (remove-if-not #'bibtex-storage:associated-entry
-                         library:library-files )))
+                         (library:library-files))))

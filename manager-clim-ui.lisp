@@ -192,6 +192,9 @@
     (with-pane (new-section pane)
                (display-bib-entries pane (list it)))))
 
+(define-manager-ui-command (com-update-symlinks :name "Update Symlinks") ()
+  (bibtex-storage:library-create-symlinks))
+
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
 

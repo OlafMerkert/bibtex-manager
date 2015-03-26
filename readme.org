@@ -50,7 +50,7 @@ If you can figure out how to use the CLIM interface, the available commands shou
    [[file:~/Projekte/bibtex-manager/manager-clim-ui.lisp::(define-manager-ui-command%20(com-bib-associate%20:name%20"Bib%20Associate")%20((bib-entry%20'bib-entry)))][file:~/Projekte/bibtex-manager/manager-clim-ui.lisp::(define-manager-ui-command (com-bib-associate :name "Bib Associate") ((bib-entry 'bib-entry)))]]
 + [ ] keep track of the files by saving pathname -> doi mapping
 + [ ] manage the contents of file:~/Perfezionamento/topics/topics.bib
-** TODO limit displayed search results
+** DONE limit displayed search results
 ** DONE accessor for doi
    [[file:~/Projekte/bibtex-manager/mathscinet.lisp::(define-bib-entry-accessor%20author%20title%20year)][file:~/Projekte/bibtex-manager/mathscinet.lisp::(define-bib-entry-accessor author title year)]]
 ** DONE associating filenames with bibtex entries
@@ -74,3 +74,5 @@ this would be useful for integration with helm-bibtex. But
 + afaik, helm-bibtex requires everything in one dir, so we lose hierarchy
 + also, helm-bibtex assumes everything to be a PDF. Again, we lose info
 + this is delicate if a document is split into several files (eg chapters)
+** TODO mathscinet does not automatically do substring matching
+e.g. searching for "Poorten" turns up nothing, but "van der Poorten" yields the desired results
