@@ -18,12 +18,14 @@
    #:bib-entry-doi
    #:bib-entry-editor
    #:bib-entry-mrnumber
-   #:generate-autokey))
+   #:generate-autokey
+   #:mathscinet-list-references))
 
 (in-package :bibtex-manager/mathscinet)
 
 ;;; retrieve bibtex information by mathscinet ID
 (defun bibtex-for-publication-id (publication-id)
+  (check-type publication-id integer)
   (let1 (doc (uri->html-document (format nil "http://www.ams.org/mathscinet/search/publications.html?fmt=bibtex&pg1=MR&s1=~A" publication-id)))
     (text-content (first (query "div.doc pre" doc)))))
 
@@ -176,3 +178,14 @@
             (or (autokey-names author) (autokey-names editor))
             year
             (autokey-title title))))
+
+;;; list referenced publications
+(defun mathscinet-list-references (publication-id)
+  "For a given MR number, find all the references for this article
+listed on mathscinet. Be aware that some references may not be part of
+the mathscinet database, and hence be missing."
+  (check-type publication-id integer)
+  (le1 (doc (uri->html-document (format nil "http://www.ams.org/mathscinet/search/publdoc.html?pg1=MR&s1=~A"  publication-id)))
+    (mapcar (clambda (remove-MR (split1 "\\s" (text-content x!))))
+            (remove-if-not (clambda (search "fromreflist" (dom:get-attribute x! "href")))
+                           (query "ol a" doc)))))

@@ -76,3 +76,6 @@ this would be useful for integration with helm-bibtex. But
 + this is delicate if a document is split into several files (eg chapters)
 ** TODO mathscinet does not automatically do substring matching
 e.g. searching for "Poorten" turns up nothing, but "van der Poorten" yields the desired results
+** TODO extract a list of references for some entry [1/1]
++ [X] backend function
++ [ ] expose to frontend
