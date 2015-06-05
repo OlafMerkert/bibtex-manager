@@ -79,3 +79,8 @@ e.g. searching for "Poorten" turns up nothing, but "van der Poorten" yields the 
 ** TODO extract a list of references for some entry [1/1]
 + [X] backend function
 + [ ] expose to frontend
+** TODO support other sources than mathscinet
++ [ ] manual bibtex?
++ [ ] DOI
+*** TODO requires new id number scheme
+don't just test for the id, but also the "source"
