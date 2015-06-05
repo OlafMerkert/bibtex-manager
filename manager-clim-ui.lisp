@@ -189,11 +189,19 @@
     ((document 'document))
   (setf (current-object *application-frame*) document)
   (awhen (bibtex-storage:associated-entry document)
-    (with-pane (new-section pane)
-               (display-bib-entries pane (list it)))))
+    (with-pane
+      (new-section pane)
+      (display-bib-entries pane (list it)))))
 
 (define-manager-ui-command (com-update-symlinks :name "Update Symlinks") ()
   (bibtex-storage:library-create-symlinks))
+
+(define-manager-ui-command (com-list-references :name "References") ((entry 'bib-entry))
+  (setf (current-object *application-frame*) entry)
+  (awhen (bibtex-storage:bibtex-mathscinet-references entry)
+    (with-pane
+      (new-section pane)
+      (display-bib-entries pane it))))
 
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())

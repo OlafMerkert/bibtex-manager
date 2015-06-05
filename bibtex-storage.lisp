@@ -11,7 +11,8 @@
    #:map-bib-file
    #:save-bib-entry
    #:*mrnumber-bibtex-table*
-   #:library-create-symlinks))
+   #:library-create-symlinks
+   #:bibtex-mathscinet-references))
 
 (in-package :bibtex-manager/bibtex-storage)
 
@@ -57,6 +58,8 @@
   (apply #'map-bib-file #'save-bib-entry files))
 
 (defun bib-entry-by-mr (mrnumber)
+  "Find the `bib-entry' identified by `MRnumber', either in the local
+storage, or search for it online."
   (check-type mrnumber integer)
   (or (gethash mrnumber *mrnumber-bibtex-table*)
       (save-bib-entry (first (search-bibtex-entries :mrnumber mrnumber)))
@@ -147,3 +150,8 @@
   (mapcar #'document-create-symlink
           (remove-if-not #'bibtex-storage:associated-entry
                          (library:library-files))))
+
+(defun bibtex-mathscinet-references (entry)
+  "Produce a list of references (as `bib-entry') as found on
+mathscinet for a given `entry'."
+  (mapcar #'bib-entry-by-mr (mathscinet-list-references (bib-entry-mrnumber entry))))
