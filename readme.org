@@ -82,5 +82,10 @@ e.g. searching for "Poorten" turns up nothing, but "van der Poorten" yields the 
 ** TODO support other sources than mathscinet
 + [ ] manual bibtex?
 + [ ] DOI
-*** TODO requires new id number scheme
+*** DONE requires new id number scheme
 don't just test for the id, but also the "source"
+** TODO support bibtex-entries without MR number
+possibilities
++ use negative MR numbers internally
++ maybe compute them somehow?
++ produce two bibtex files: one with negative MR number included, another one with them omitted.
