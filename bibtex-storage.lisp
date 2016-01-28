@@ -30,6 +30,11 @@
 (defvar *document-bibtex-table*
   (make-hash-table :test 'equal))
 
+(defun negative-mr-p (entry)
+  (not (and (bib-entry-ref "mrnumber" entry)
+            (< 0 (bib-entry-mrnumber entry)))))
+
+
 ;;; loading bibtex data from the file
 (defun map-bib-file (function &rest files)
   "Read in all bib-entries from `files' and map `function' over them."
@@ -65,10 +70,18 @@ storage, or search for it online."
       (save-bib-entry (first (search-bibtex-entries :mrnumber mrnumber)))
       (error "No bibtex-entry found for MR=~A" mrnumber)))
 
+(defun write-bib-entry/no-mr (entry stream)
+  (if (negative-mr-p entry)
+      (write-bib-entry (aprog1 (bibtex-runtime::copy-bib-entry entry)
+                         (remhash "mrnumber" (bibtex-runtime::bib-entry-dict it)))
+                       stream)
+      (write-bib-entry entry stream)))
+
+
 (defun save-bib-table (file)
   ;; todo protect against external modifications
   (with-open-file (stream file :direction :output :if-exists :supersede)
-    (maphash-values (clambda (write-bib-entry x!entry stream)) *mrnumber-bibtex-table*)))
+    (maphash-values (clambda (write-bib-entry/no-mr x!entry stream)) *mrnumber-bibtex-table*)))
 
 ;;; loading the pathname -> MR map
 (defun load-document-mr-table (file)
@@ -85,9 +98,11 @@ storage, or search for it online."
   (with-open-file (stream file :direction :output :if-exists :supersede)
     (le1 (table)
       (maphash (lambda (k v)
-                 (push (cons k ; todo transform path
-                             (bib-entry-mrnumber v))
-                       table))
+                 ;; only keep track of positive mrnumbers
+                 (unless (negative-mr-p v)
+                   (push (cons k        ; todo transform path
+                               (bib-entry-mrnumber v))
+                         table)))
                *document-bibtex-table*)
       (push :document-mr-table table)
       (print (list table) stream))))
