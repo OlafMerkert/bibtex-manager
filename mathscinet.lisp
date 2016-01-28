@@ -51,12 +51,17 @@
 
 (defvar negative-mr-number-counter 0)
 
+(defvar negative-mr-number-keys (make-hash-table :test 'equal)) 
 
 (memodefun bib-entry-mrnumber (entry)
-  (values (or (aand (bib-entry-ref "mrnumber" entry)
-                    (parse-integer it :junk-allowed t)
-                    (if (< 0 it) it))
-              (decf negative-mr-number-counter))))
+  (cond ((aand (bib-entry-ref "mrnumber" entry)
+               (parse-integer it :junk-allowed t)
+               (if (< 0 it) it)))
+        ;; check if we have seen this key before
+        ((gethash (bib-entry-cite-key entry) negative-mr-number-keys))
+        (t (le1 (mr (decf negative-mr-number-counter))
+             (setf (gethash (bib-entry-cite-key entry) negative-mr-number-keys) mr)
+             mr))))
 
 (defun subseq- (seq count)
   "Remove `count' elements from `seq'."
