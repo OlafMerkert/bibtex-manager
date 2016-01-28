@@ -84,8 +84,7 @@ e.g. searching for "Poorten" turns up nothing, but "van der Poorten" yields the 
 + [ ] DOI
 *** DONE requires new id number scheme
 don't just test for the id, but also the "source"
-** TODO support bibtex-entries without MR number
-possibilities
+** DONE support bibtex-entries without MR number
 + use negative MR numbers internally
-+ maybe compute them somehow?
-+ produce two bibtex files: one with negative MR number included, another one with them omitted.
++ reuse the number for identical citekeys to avoid problems when loading a file twice.
++ remove negative MR numbers when exporting (now they should not even be present anyway)
