@@ -49,9 +49,14 @@
 
 (define-bib-entry-accessor author title year doi editor)
 
+(defvar negative-mr-number-counter 0)
+
+
 (memodefun bib-entry-mrnumber (entry)
-  (values (parse-integer (bib-entry-ref "mrnumber" entry)
-                         :junk-allowed t)))
+  (values (or (aand (bib-entry-ref "mrnumber" entry)
+                    (parse-integer it :junk-allowed t)
+                    (if (< 0 it) it))
+              (decf negative-mr-number-counter))))
 
 (defun subseq- (seq count)
   "Remove `count' elements from `seq'."
