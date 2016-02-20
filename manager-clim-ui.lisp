@@ -1,6 +1,7 @@
 (defpackage :bibtex-manager/clim-ui
   (:use :clim-lisp :clim :ol)
-  (:export))
+  (:export
+   #:manager-ui))
 
 (in-package :bibtex-manager/clim-ui)
 
@@ -202,6 +203,16 @@
     (with-pane
       (new-section pane)
       (display-bib-entries pane it))))
+
+(defun open-url-in-browser (url)
+  "Open the given `url' in the browser, or other appropriate
+application (using xdg-open on linux)."
+  (run-program "/usr/bin/xdg-open" url))
+
+(define-manager-ui-command (com-open-in-mathscinet :name "Open In Mathscinet") ((entry 'bib-entry))
+  (let ((mr (mathscinet:bib-entry-mrnumber entry)))
+    (when (< 0 mr)
+      (open-url-in-browser (mathscinet:mathscinet-page-url mr)))))
 
 ;;; define presentations for pathnames and bib-entries
 (define-presentation-type document ())
